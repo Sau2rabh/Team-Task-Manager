@@ -1,0 +1,54 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.*
+.yarn/
+.next/
+out/
+
+# Environment Variables (SENSITIVE)
+.env
+.env*
+!.env.example
+*.env
+*.env.*
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+*.log
+
+# IDEs and Editors
+.vscode/
+.idea/
+.visualstudio/
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# OS Files
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# Build Outputs
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# Test & Temp Files
+test_*.json
+test_*.js
+*.tmp
+*.temp
+.cache/
+
+# Local configuration
+.local
