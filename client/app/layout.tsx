@@ -23,10 +23,14 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${outfit.variable} font-sans antialiased`}>
+        {/* Force fonts to be 'used' immediately to prevent preload warnings */}
+        <div style={{ fontFamily: 'var(--font-inter)', opacity: 0, position: 'absolute', pointerEvents: 'none' }}>.</div>
+        <div style={{ fontFamily: 'var(--font-outfit)', opacity: 0, position: 'absolute', pointerEvents: 'none' }}>.</div>
+        
+        <ConsoleManager />
         <ThemeProvider>
           <AuthProvider>
             <GlobalLoader>
-              <ConsoleManager />
               {children}
             </GlobalLoader>
           </AuthProvider>

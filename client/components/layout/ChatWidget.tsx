@@ -258,11 +258,11 @@ const ChatWidget = () => {
         whileTap={{ scale: 0.9 }}
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "w-14 h-14 rounded-2xl flex items-center justify-center text-white shadow-2xl relative transition-all duration-300",
+          "w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-2xl relative transition-all duration-300",
           isOpen ? "bg-rose-500 shadow-rose-500/30" : "bg-primary shadow-primary/30"
         )}
       >
-        {isOpen ? <X size={24} /> : <MessageSquare size={24} />}
+        {isOpen ? <X size={20} /> : <MessageSquare size={20} />}
         {unreadCount > 0 && !isOpen && (
           <span className="absolute -top-2 -right-2 bg-rose-500 text-white text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center border-4 border-background animate-bounce">
             {unreadCount}
