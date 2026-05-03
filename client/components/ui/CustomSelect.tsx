@@ -17,14 +17,16 @@ interface CustomSelectProps {
   label?: string;
   className?: string;
   size?: 'sm' | 'md' | 'lg';
+  placeholder?: string;
 }
 
-export const CustomSelect: React.FC<CustomSelectProps> = ({ options, value, onChange, className, size = 'md' }) => {
+export const CustomSelect: React.FC<CustomSelectProps> = ({ options, value, onChange, className, size = 'md', placeholder }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [openUp, setOpenUp] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const selectedOption = options.find(opt => opt.value === value) || options[0];
+  const selectedOption = options.find(opt => opt.value === value);
+  const displayLabel = selectedOption?.label || placeholder || options[0]?.label || "Select...";
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -62,7 +64,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({ options, value, onCh
           isOpen ? "border-primary/50 ring-2 ring-primary/20" : "hover:border-border/80"
         )}
       >
-        <span className="font-bold text-foreground truncate mr-2">{selectedOption?.label}</span>
+        <span className="font-bold text-foreground truncate mr-2">{displayLabel}</span>
         <ChevronDown 
           className={cn("text-muted-foreground transition-transform duration-300", isOpen ? "rotate-180 text-primary" : "group-hover:text-foreground")} 
           size={20} 
