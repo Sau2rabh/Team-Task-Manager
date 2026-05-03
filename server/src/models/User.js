@@ -25,9 +25,42 @@ const userSchema = new mongoose.Schema({
     enum: ['member', 'admin'],
     default: 'member',
   },
+  profilePicture: {
+    type: String,
+    default: '',
+  },
+  bio: {
+    type: String,
+    default: '',
+  },
+  skills: {
+    type: [String],
+    default: [],
+  },
+  socialLinks: {
+    github: { type: String, default: '' },
+    linkedin: { type: String, default: '' },
+    twitter: { type: String, default: '' },
+  },
   createdAt: {
     type: Date,
     default: Date.now,
+  },
+  xp: {
+    type: Number,
+    default: 0,
+  },
+  level: {
+    type: Number,
+    default: 1,
+  },
+  status: {
+    type: String,
+    default: 'Available',
+  },
+  statusIcon: {
+    type: String,
+    default: 'Circle',
   },
 });
 

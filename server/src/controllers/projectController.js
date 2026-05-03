@@ -3,9 +3,11 @@ const Project = require('../models/Project');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
 const Task = require('../models/Task');
+const { emitActivity } = require('../socket/socket');
+const { createNotification } = require('./notificationController');
 
 exports.createProject = async (req, res) => {
-  const { name, description, memberIds } = req.body;
+  const { name, description, memberIds, category, dueDate, coverImage } = req.body;
 
   try {
     const members = [{ user: req.user._id, role: 'Admin' }];
@@ -23,13 +25,16 @@ exports.createProject = async (req, res) => {
       description,
       createdBy: req.user._id,
       members,
+      category,
+      dueDate,
+      coverImage
     });
 
     // Create notifications for assigned members
     if (memberIds && Array.isArray(memberIds)) {
       const notificationPromises = memberIds
         .filter(id => id !== req.user._id.toString())
-        .map(id => Notification.create({
+        .map(id => createNotification({
           recipient: id,
           sender: req.user._id,
           type: 'PROJECT_ASSIGNED',
@@ -38,6 +43,11 @@ exports.createProject = async (req, res) => {
         }));
       await Promise.all(notificationPromises);
     }
+
+    emitActivity('PROJECT_CREATED', {
+      project: project.name,
+      user: req.user.name
+    });
 
     res.status(201).json(project);
   } catch (err) {
@@ -49,8 +59,23 @@ exports.getProjects = async (req, res) => {
   try {
     const projects = await Project.find({ 'members.user': req.user._id })
       .populate('createdBy', 'name email')
-      .populate('members.user', 'name email');
-    res.json(projects);
+      .populate('members.user', 'name email')
+      .lean(); // Use lean for performance since we're adding properties
+
+    const projectsWithStats = await Promise.all(projects.map(async (project) => {
+      const totalTasks = await Task.countDocuments({ projectId: project._id });
+      const completedTasks = await Task.countDocuments({ projectId: project._id, status: 'Completed' });
+      const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+      
+      return {
+        ...project,
+        totalTasks,
+        completedTasks,
+        progress
+      };
+    }));
+
+    res.json(projectsWithStats);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -63,11 +88,21 @@ exports.getProjectById = async (req, res) => {
   try {
     const project = await Project.findById(req.params.id)
       .populate('createdBy', 'name email')
-      .populate('members.user', 'name email');
+      .populate('members.user', 'name email')
+      .lean();
     
     if (!project) return res.status(404).json({ message: 'Project not found' });
     
-    res.json(project);
+    const totalTasks = await Task.countDocuments({ projectId: project._id });
+    const completedTasks = await Task.countDocuments({ projectId: project._id, status: 'Completed' });
+    const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+    res.json({
+      ...project,
+      totalTasks,
+      completedTasks,
+      progress
+    });
   } catch (err) {
     console.error('Error in getProjectById:', err);
     res.status(500).json({ message: err.message });
@@ -77,6 +112,12 @@ exports.getProjectById = async (req, res) => {
 exports.updateProject = async (req, res) => {
   try {
     const project = await Project.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    
+    emitActivity('PROJECT_UPDATED', {
+      project: project.name,
+      user: req.user.name
+    });
+
     res.json(project);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -85,7 +126,13 @@ exports.updateProject = async (req, res) => {
 
 exports.deleteProject = async (req, res) => {
   try {
-    await Project.findByIdAndDelete(req.params.id);
+    const project = await Project.findByIdAndDelete(req.params.id);
+    
+    emitActivity('PROJECT_DELETED', {
+      project: project?.name || 'Unknown Project',
+      user: req.user.name
+    });
+
     res.json({ message: 'Project removed' });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -107,12 +154,18 @@ exports.addMember = async (req, res) => {
     await project.save();
 
     // Create notification
-    await Notification.create({
+    await createNotification({
       recipient: userToAdd._id,
       sender: req.user._id,
       type: 'PROJECT_ASSIGNED',
       message: `You have been added to project: ${project.name}`,
       projectId: project._id
+    });
+
+    emitActivity('MEMBER_ADDED', {
+      project: project.name,
+      member: userToAdd.name,
+      user: req.user.name
     });
 
     res.json(project);

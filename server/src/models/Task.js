@@ -27,10 +27,16 @@ const taskSchema = new mongoose.Schema({
   dueDate: {
     type: Date,
   },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
+  comments: [{
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    text: String,
+    createdAt: { type: Date, default: Date.now }
+  }],
+  activity: [{
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    action: String,
+    timestamp: { type: Date, default: Date.now }
+  }],
+}, { timestamps: true });
 
 module.exports = mongoose.model('Task', taskSchema);

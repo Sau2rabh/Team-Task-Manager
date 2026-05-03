@@ -28,10 +28,27 @@ const projectSchema = new mongoose.Schema({
       },
     },
   ],
-  createdAt: {
-    type: Date,
-    default: Date.now,
+  status: {
+    type: String,
+    enum: ['Active', 'Completed', 'On Hold', 'Archived'],
+    default: 'Active',
   },
-});
+  priority: {
+    type: String,
+    enum: ['High', 'Medium', 'Low'],
+    default: 'Medium',
+  },
+  category: {
+    type: String,
+    enum: ['Development', 'Design', 'Marketing', 'Planning', 'Other'],
+    default: 'Development',
+  },
+  dueDate: {
+    type: Date,
+  },
+  coverImage: {
+    type: String,
+  },
+}, { timestamps: true });
 
 module.exports = mongoose.model('Project', projectSchema);

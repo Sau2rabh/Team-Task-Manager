@@ -5,15 +5,12 @@ import { useParams } from 'next/navigation';
 import MainLayout from '@/components/layout/MainLayout';
 import api from '@/lib/api';
 import { KanbanBoard } from '@/components/tasks/KanbanBoard';
-import { 
-  Plus, 
-  Sparkles, 
-  Loader2
-} from 'lucide-react';
+import { Plus, Sparkles, Loader2, Calendar, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { AddTaskModal } from '@/components/tasks/AddTaskModal';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import { CustomSelect } from '@/components/ui/CustomSelect';
 
 import { Timeline } from '@/components/projects/Timeline';
 import { ProjectSettings } from '@/components/projects/ProjectSettings';
@@ -23,6 +20,8 @@ interface Project {
   _id: string;
   name: string;
   description: string;
+  category: string;
+  dueDate?: string;
   members: Array<{ user: { _id: string; name: string; email: string }; role: string }>;
 }
 
@@ -140,11 +139,22 @@ export default function ProjectDetailsPage() {
       <div className="space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-3 mb-2">
+            <div className="flex flex-wrap items-center gap-3 mb-2">
               <h2 className="text-3xl font-bold">{project?.name}</h2>
-              <span className="px-3 py-1 bg-secondary rounded-full text-xs font-medium border border-border">
-                Active
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1 bg-emerald-500/10 text-emerald-500 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-500/20">
+                  Active
+                </span>
+                <span className="px-3 py-1 bg-indigo-500/10 text-indigo-500 rounded-full text-[10px] font-black uppercase tracking-widest border border-indigo-500/20">
+                  {project?.category || 'General'}
+                </span>
+                {project?.dueDate && (
+                  <span className="px-3 py-1 bg-rose-500/10 text-rose-500 rounded-full text-[10px] font-black uppercase tracking-widest border border-rose-500/20 flex items-center gap-1">
+                    <Calendar size={12} />
+                    Due {new Date(project.dueDate).toLocaleDateString()}
+                  </span>
+                )}
+              </div>
             </div>
             <p className="text-muted-foreground max-w-2xl">{project?.description}</p>
           </div>
@@ -229,15 +239,16 @@ export default function ProjectDetailsPage() {
                         </td>
                         <td className="px-6 py-4">
                           {editingMemberId === member.user._id ? (
-                            <select 
-                              defaultValue={member.role}
-                              onChange={(e) => handleRoleUpdate(member.user._id, e.target.value)}
-                              className="bg-secondary border border-border rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary"
-                            >
-                              <option value="Admin">Admin</option>
-                              <option value="Member">Member</option>
-                              <option value="Viewer">Viewer</option>
-                            </select>
+                            <CustomSelect 
+                              options={[
+                                { label: 'Admin', value: 'Admin' },
+                                { label: 'Member', value: 'Member' },
+                                { label: 'Viewer', value: 'Viewer' }
+                              ]}
+                              value={member.role}
+                              onChange={(val) => handleRoleUpdate(member.user._id, val)}
+                              className="w-32 h-8"
+                            />
                           ) : (
                             <span className={cn(
                               "px-2.5 py-1 rounded-full text-[10px] font-bold uppercase border",

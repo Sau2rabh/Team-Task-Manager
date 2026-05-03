@@ -11,6 +11,7 @@ import {
   AlertTriangle,
   Loader2
 } from 'lucide-react';
+import { CustomSelect } from '@/components/ui/CustomSelect';
 import api from '@/lib/api';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
@@ -19,6 +20,8 @@ interface Project {
   _id: string;
   name: string;
   description: string;
+  category: string;
+  dueDate?: string;
   members: Array<{ user: { _id: string; name: string; email: string }; role: string }>;
 }
 
@@ -33,6 +36,8 @@ export function ProjectSettings({ project, isAdmin, onUpdate }: ProjectSettingsP
   const router = useRouter();
   const [name, setName] = useState(project.name);
   const [description, setDescription] = useState(project.description);
+  const [category, setCategory] = useState(project.category || 'Development');
+  const [dueDate, setDueDate] = useState(project.dueDate ? new Date(project.dueDate).toISOString().split('T')[0] : '');
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -43,7 +48,12 @@ export function ProjectSettings({ project, isAdmin, onUpdate }: ProjectSettingsP
     
     setIsUpdating(true);
     try {
-      const { data } = await api.put(`/projects/${project._id}`, { name, description });
+      const { data } = await api.put(`/projects/${project._id}`, { 
+        name, 
+        description,
+        category,
+        dueDate
+      });
       onUpdate(data);
       toast.success('Project updated successfully');
     } catch (error) {
@@ -96,12 +106,38 @@ export function ProjectSettings({ project, isAdmin, onUpdate }: ProjectSettingsP
                 required
               />
             </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-muted-foreground uppercase tracking-widest text-[10px]">Category</label>
+                <CustomSelect 
+                  value={category}
+                  onChange={setCategory}
+                  options={[
+                    { label: 'Development', value: 'Development' },
+                    { label: 'Design', value: 'Design' },
+                    { label: 'Marketing', value: 'Marketing' },
+                    { label: 'Planning', value: 'Planning' },
+                    { label: 'Other', value: 'Other' },
+                  ]}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-muted-foreground uppercase tracking-widest text-[10px]">Due Date</label>
+                <input 
+                  type="date"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                  className="w-full bg-secondary/50 border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all font-bold appearance-none"
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
-              <label className="text-sm font-medium">Description</label>
+              <label className="text-sm font-medium text-muted-foreground uppercase tracking-widest text-[10px]">Description</label>
               <textarea 
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                className="w-full bg-secondary/50 border border-border rounded-xl px-4 py-2 focus:ring-2 focus:ring-primary outline-none transition-all min-h-[100px]"
+                className="w-full bg-secondary/50 border border-border rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all min-h-[100px] font-medium"
                 placeholder="What is this project about?"
               />
             </div>

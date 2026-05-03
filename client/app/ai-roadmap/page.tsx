@@ -71,7 +71,7 @@ export default function AiRoadmapPage() {
                 className="relative"
               >
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center font-bold text-white">
+                  <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center font-bold text-secondary-foreground">
                     {i + 1}
                   </div>
                   <h3 className="text-2xl font-bold">{project.name}</h3>

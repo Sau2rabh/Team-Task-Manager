@@ -6,6 +6,7 @@ import MainLayout from '@/components/layout/MainLayout';
 import api from '@/lib/api';
 import { toast } from 'sonner';
 import { FolderPlus, Loader2, ArrowLeft, Users, X, Check } from 'lucide-react';
+import { CustomSelect } from '@/components/ui/CustomSelect';
 import Link from 'next/link';
 
 interface User {
@@ -20,6 +21,9 @@ export default function NewProjectPage() {
   const [memberIds, setMemberIds] = useState<string[]>([]);
   const [availableUsers, setAvailableUsers] = useState<User[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [category, setCategory] = useState('Development');
+  const [priority, setPriority] = useState('Medium');
+  const [dueDate, setDueDate] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isUsersLoading, setIsUsersLoading] = useState(true);
   const router = useRouter();
@@ -55,7 +59,10 @@ export default function NewProjectPage() {
       const { data } = await api.post('/projects', { 
         name, 
         description, 
-        memberIds 
+        memberIds,
+        category,
+        priority,
+        dueDate
       });
       toast.success('Project created and members assigned!');
       router.push(`/projects/${data._id}`);
@@ -105,10 +112,50 @@ export default function NewProjectPage() {
               <label className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Description (Optional)</label>
               <textarea
                 placeholder="What is this project about?"
-                rows={3}
-                className="w-full bg-secondary border border-border rounded-2xl py-4 px-5 focus:ring-2 focus:ring-primary/30 focus:outline-none transition-all resize-none font-medium"
+                rows={2}
+                className="w-full bg-secondary border border-border rounded-2xl py-3 px-5 focus:ring-2 focus:ring-primary/30 focus:outline-none transition-all resize-none font-medium"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Category</label>
+                <CustomSelect
+                  value={category}
+                  onChange={setCategory}
+                  options={[
+                    { label: 'Development', value: 'Development' },
+                    { label: 'Design', value: 'Design' },
+                    { label: 'Marketing', value: 'Marketing' },
+                    { label: 'Planning', value: 'Planning' },
+                    { label: 'Other', value: 'Other' },
+                  ]}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Priority</label>
+                <CustomSelect
+                  value={priority}
+                  onChange={setPriority}
+                  options={[
+                    { label: 'Low Priority', value: 'Low' },
+                    { label: 'Medium Priority', value: 'Medium' },
+                    { label: 'High Priority', value: 'High' },
+                  ]}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Project Deadline</label>
+              <input
+                type="date"
+                className="w-full bg-secondary border border-border rounded-2xl py-3 px-5 focus:ring-2 focus:ring-primary/30 outline-none transition-all font-medium appearance-none"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
               />
             </div>
 

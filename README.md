@@ -1,33 +1,39 @@
-# 🌌 Team Task Manager – Smart Team Task Manager
+# 🌌 Team Task Manager – Premium Collaboration Platform
 
-Team Task Manager is a high-end, production-ready SaaS platform designed for modern teams. It combines advanced project management with **AI-powered intelligence** and a stunning **Zenith Glassmorphism** design system.
+Team Task Manager is a high-end, production-ready SaaS platform designed for modern teams. It combines advanced project management with **real-time collaboration**, **gamification**, and a stunning **Zenith Glassmorphism** design system.
 
 ![Project Status](https://img.shields.io/badge/Status-Production--Ready-emerald?style=for-the-badge)
-![Tech Stack](https://img.shields.io/badge/Stack-Next.js%20%7C%20Node%20%7C%20MongoDB-indigo?style=for-the-badge)
+![Tech Stack](https://img.shields.io/badge/Stack-Next.js%20%7C%20Node%20%7C%20Socket.io%20%7C%20MongoDB-indigo?style=for-the-badge)
 
 ## ✨ Premium Features
 
 ### 🎨 Zenith Glassmorphism UI
-- **Futuristic Aesthetics**: Deep frosted-glass panels with `backdrop-blur-3xl` and sharp light-edge borders.
-- **Nebula Backgrounds**: Dynamic, animated nebula-style backgrounds that breathe life into the workspace.
-- **Theme Intelligence**: Fully integrated Light and Dark modes with seamless transition parity.
-- **Ultra-Responsive**: Optimized for everything from mobile phones to high-resolution monitors.
+- **Futuristic Aesthetics**: Deep frosted-glass panels with `backdrop-blur-3xl` and interactive hover effects.
+* **Animated Backgrounds**: Unique motion-based effects that adapt specifically to Dark and Light modes.
+- **Theme Parity**: Seamless transition between high-contrast Dark Mode and elegant Light Mode.
+- **Ultra-Responsive**: Optimized for every device, featuring a floating mobile sidebar and responsive grids.
 
-### 🤖 AI Task Forge
-- **Intelligent Suggestions**: Leverage AI to automatically generate project tasks based on your project description.
-- **Workflow Automation**: One-click task generation to jumpstart your team's productivity.
+### 🛡️ Admin Command Center (Real-Time)
+* **System Health Monitor**: Live tracking of server latency, CPU load, and active socket connections.
+* **Global Broadcast Tool**: Admins can send real-time announcements to all online members instantly.
+* **Advanced Analytics**: Interactive Pie and Bar charts (Recharts) for task distribution and team productivity.
+* **User Governance**: Full control over user roles, permissions, and account management.
 
-### 🛡️ Advanced Security & RBAC
-- **Project-Level Permissions**: Granular Role-Based Access Control (Admin, Member, Viewer) managed at the project level.
-- **Secure Authentication**: JWT-based security with bcrypt hashing and protected API routes.
+### 💬 Real-Time Collaboration Hub
+* **Dual-Mode Chat**: Integrated Global Team Chat and private Direct Messaging.
+* **Unread Tracking**: Smart message indicators and unread counters for seamless communication.
+* **Socket.io Integration**: Zero-latency message delivery and real-time activity notifications.
 
-### 📊 Real-time Analytics
-- **Dynamic Dashboard**: Interactive performance metrics, overdue task detection, and efficiency tracking.
-- **System Analytics**: Admin-level insights into global team productivity and system-wide task distribution.
+### 🏆 Gamification & Team Hub
+* **Leaderboard System**: Level up and earn XP by completing tasks. Track the top performers in the organization.
+* **Presence Indicators**: Real-time status pickers (Available, Focus Mode, In a Meeting, Out of Office).
+* **Productivity Bars**: Visual tracking of individual and team-wide completion rates.
+* **Member Detail Modals**: Deep insights into member skills, bio, and performance stats.
 
 ### 📋 Task Mastery
 - **Kanban Precision**: Smooth drag-and-drop workflow with real-time state persistence.
-- **Project Timelines**: Visual tracking of project milestones and member contributions.
+- **My Tasks View**: A specialized, focused workspace for individual contributors.
+- **AI Task Forge**: One-click task generation to jumpstart projects using intelligent suggestions.
 
 ---
 
@@ -35,16 +41,18 @@ Team Task Manager is a high-end, production-ready SaaS platform designed for mod
 
 ### Frontend
 - **Framework**: Next.js 15 (App Router)
-- **Styling**: Tailwind CSS 4 (Theme Variables & Utilities)
-- **Animations**: Framer Motion (Micro-interactions & Transitions)
-- **State Management**: React Context API
+- **Styling**: Tailwind CSS 4 (Custom Design System)
+- **Animations**: Framer Motion (Micro-interactions & 3D Tilt effects)
+- **Real-Time**: Socket.io-client
+- **Charts**: Recharts (High-performance SVG charts)
 - **Icons**: Lucide React
 
 ### Backend
 - **Server**: Node.js & Express.js
 - **Database**: MongoDB with Mongoose
-- **Security**: JSON Web Tokens (JWT), Bcrypt.js
-- **Validation**: Zod (Schema-based validation)
+- **Real-Time**: Socket.io (WebSockets)
+- **Security**: JWT-based Authentication, Bcrypt.js hashing
+- **File Handling**: Multer (Profile picture & asset management)
 
 ---
 
@@ -94,25 +102,21 @@ Team Task Manager is a high-end, production-ready SaaS platform designed for mod
 
 ---
 
-## 📡 API Architecture
+## 📡 API & Socket Architecture
 
-### Authentication
-- `POST /api/auth/signup` - Register a new account
-- `POST /api/auth/login` - Authenticate and retrieve token
+### Key API Endpoints
+- `GET /api/admin/analytics` - System-wide productivity & activity data.
+- `POST /api/notifications/broadcast` - Send notifications to all users.
+- `GET /api/users/leaderboard` - Fetch top performers based on XP.
+- `GET /api/chat/global` - Retrieve team conversation history.
 
-### Project Infrastructure
-- `GET /api/projects` - Retrieve all projects for the user
-- `POST /api/projects` - Create a new project (Admin)
-- `PATCH /api/projects/:id/members` - Update member roles
-- `POST /api/projects/ai-suggestions` - Generate AI task suggestions
-
-### Task Management
-- `GET /api/tasks/project/:projectId` - Fetch tasks for a specific project
-- `POST /api/tasks` - Create a task within a project
-- `PUT /api/tasks/:id` - Update task status or metadata
-- `GET /api/tasks/stats` - Fetch real-time workspace statistics
+### Socket Events
+- `activity` - Real-time system activity logging.
+- `new_message` / `new_private_message` - Instant communication.
+- `adminBroadcast` - High-priority system announcements.
+- `activeUsersUpdate` - Real-time presence tracking.
 
 ---
 
 ## 📄 License
-Licensed under the [MIT License](LICENSE). Built with ❤️ for modern teams.
+Licensed under the [MIT License](LICENSE). Built with ❤️ for modern, high-performance teams.

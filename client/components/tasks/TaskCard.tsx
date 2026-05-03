@@ -3,8 +3,11 @@
 import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Calendar, User, AlignLeft, CheckCircle2, Circle, Clock } from 'lucide-react';
+import { Calendar, User, AlignLeft, CheckCircle2, Circle, Clock, ChevronDown } from 'lucide-react';
 import { formatDate, cn } from '@/lib/utils';
+import { Confetti } from '../ui/Confetti';
+import { CustomSelect } from '../ui/CustomSelect';
+import TaskDetailModal from './TaskDetailModal';
 
 interface Task {
   _id: string;
@@ -13,6 +16,8 @@ interface Task {
   status: 'Todo' | 'In Progress' | 'Completed';
   assignedTo?: { _id: string; name: string; email: string };
   dueDate?: string;
+  comments: any[];
+  activity: any[];
 }
 
 interface Props {
@@ -21,6 +26,8 @@ interface Props {
 }
 
 export const TaskCard: React.FC<Props> = ({ task, onTaskUpdate }) => {
+  const [showConfetti, setShowConfetti] = React.useState(false);
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
   const {
     attributes,
     listeners,
@@ -48,44 +55,47 @@ export const TaskCard: React.FC<Props> = ({ task, onTaskUpdate }) => {
       style={style}
       {...attributes}
       {...listeners}
+      onClick={() => setIsModalOpen(true)}
       className={cn(
-        "task-card group relative",
+        "task-card group relative cursor-pointer active:scale-[0.98] transition-transform",
         isDragging ? "opacity-30" : "opacity-100",
         task.status === 'Completed' && "border-l-4 border-l-green-500"
       )}
     >
+      <TaskDetailModal 
+        taskId={task._id}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onUpdate={() => onTaskUpdate && onTaskUpdate(task._id, {})}
+      />
       <div className="flex justify-between items-start mb-2">
         <h4 className="font-bold text-foreground text-sm flex-1">{task.title}</h4>
         
-        {/* Quick Status Toggle */}
-        <div className="flex gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          {task.status !== 'Todo' && (
-            <button 
-              onClick={(e) => handleStatusChange(e, 'Todo')}
-              title="Move to Todo"
-              className="p-1 hover:bg-secondary rounded text-muted-foreground hover:text-foreground"
-            >
-              <Circle size={14} />
-            </button>
-          )}
-          {task.status !== 'In Progress' && (
-            <button 
-              onClick={(e) => handleStatusChange(e, 'In Progress')}
-              title="Start Working"
-              className="p-1 hover:bg-secondary rounded text-yellow-500/70 hover:text-yellow-500"
-            >
-              <Clock size={14} />
-            </button>
-          )}
-          {task.status !== 'Completed' && (
-            <button 
-              onClick={(e) => handleStatusChange(e, 'Completed')}
-              title="Complete Task"
-              className="p-1 hover:bg-secondary rounded text-green-500/70 hover:text-green-500"
-            >
-              <CheckCircle2 size={14} />
-            </button>
-          )}
+        {/* Status Options Dropdown */}
+        <div className="relative group/status flex items-center min-w-[100px]">
+          {showConfetti && <Confetti />}
+          <CustomSelect 
+            size="sm"
+            options={[
+              { label: 'Todo', value: 'Todo' },
+              { label: 'In Progress', value: 'In Progress' },
+              { label: 'Completed', value: 'Completed' }
+            ]}
+            value={task.status}
+            onChange={(newStatus) => {
+              if (newStatus === 'Completed' && task.status !== 'Completed') {
+                setShowConfetti(true);
+                setTimeout(() => setShowConfetti(false), 3000);
+              }
+              onTaskUpdate && onTaskUpdate(task._id, { status: newStatus });
+            }}
+            className={cn(
+              "w-full",
+              task.status === 'Completed' ? "[&>button]:text-emerald-500 [&>button]:border-emerald-500/30" : 
+              task.status === 'In Progress' ? "[&>button]:text-amber-500 [&>button]:border-amber-500/30" : 
+              ""
+            )}
+          />
         </div>
       </div>
       

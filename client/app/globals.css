@@ -185,3 +185,39 @@
     font-family: var(--font-outfit), system-ui, sans-serif;
   }
 }
+
+/* Fix for persistent vertical lines in date inputs - Making it transparent but clickable */
+input[type="date"]::-webkit-inner-spin-button {
+    display: none;
+    -webkit-appearance: none;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    height: auto;
+    color: transparent;
+    background: transparent;
+    cursor: pointer;
+    z-index: 10;
+}
+
+input[type="date"] {
+    position: relative;
+    cursor: pointer;
+}
+
+input[type="date"]::after {
+    content: "📅";
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    opacity: 0.6;
+    font-size: 1.1rem;
+}

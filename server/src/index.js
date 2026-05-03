@@ -3,6 +3,8 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
+const http = require('http');
+const { initSocket } = require('./socket/socket');
 
 // Load environment variables
 dotenv.config();
@@ -13,6 +15,7 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Request logger
 app.use((req, res, next) => {
@@ -44,6 +47,7 @@ const taskRoutes = require('./routes/tasks');
 const adminRoutes = require('./routes/admin');
 const notificationRoutes = require('./routes/notifications');
 const userRoutes = require('./routes/users');
+const chatRoutes = require('./routes/chat');
 
 // Use Routes
 app.use('/api/auth', authRoutes);
@@ -52,6 +56,7 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {
@@ -63,7 +68,10 @@ app.use((err, req, res, next) => {
   });
 });
 
-const server = app.listen(PORT, () => {
+const server = http.createServer(app);
+initSocket(server);
+
+server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
 

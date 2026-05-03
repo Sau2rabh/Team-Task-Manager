@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
+import { socketService } from '@/lib/socket';
 
 interface User {
   _id: string;
@@ -10,6 +11,18 @@ interface User {
   email: string;
   token: string;
   role?: string;
+  profilePicture?: string;
+  bio?: string;
+  skills?: string[];
+  socialLinks?: {
+    github?: string;
+    linkedin?: string;
+    twitter?: string;
+  };
+  xp?: number;
+  level?: number;
+  status?: string;
+  statusIcon?: string;
 }
 
 interface AuthContextType {
@@ -17,6 +30,7 @@ interface AuthContextType {
   loading: boolean;
   login: (userData: User) => void;
   logout: () => void;
+  updateUser: (userData: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -36,6 +50,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(false);
   }, []);
 
+  useEffect(() => {
+    socketService.on('user_update', (data: { xp: number, level: number }) => {
+      updateUser(data);
+    });
+
+    return () => {
+      socketService.off('user_update');
+    };
+  }, [user]);
+
   const login = (userData: User) => {
     setUser(userData);
     localStorage.setItem('team_task_manager_user', JSON.stringify(userData));
@@ -46,8 +70,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     window.location.href = '/';
   };
 
+  const updateUser = (userData: Partial<User>) => {
+    if (user) {
+      const updatedUser = { ...user, ...userData };
+      setUser(updatedUser);
+      localStorage.setItem('team_task_manager_user', JSON.stringify(updatedUser));
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

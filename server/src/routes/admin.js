@@ -61,13 +61,14 @@ router.delete('/users/:id', protect, isAdmin, async (req, res) => {
   }
 });
 
-// @desc    Get system-wide task analytics (Admin only)
+// @desc    Get system-wide analytics (Admin only)
 // @route   GET /api/admin/analytics
 // @access  Private/Admin
 router.get('/analytics', protect, isAdmin, async (req, res) => {
   try {
     const Task = require('../models/Task');
     const User = require('../models/User');
+    const Project = require('../models/Project');
 
     // Get all users
     const users = await User.find({}).select('name email');
@@ -86,7 +87,43 @@ router.get('/analytics', protect, isAdmin, async (req, res) => {
       };
     }));
 
-    res.json(userStats);
+    // Get all projects
+    const projects = await Project.find({});
+    const projectStats = await Promise.all(projects.map(async (p) => {
+      const totalTasks = await Task.countDocuments({ projectId: p._id });
+      const completedTasks = await Task.countDocuments({ projectId: p._id, status: 'Completed' });
+      return {
+        _id: p._id,
+        name: p.name,
+        totalTasks,
+        completedTasks,
+        progress: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0,
+        status: p.status || 'Active'
+      };
+    }));
+
+    // Get recent activities (last 15 updated tasks)
+    const recentTasks = await Task.find({})
+      .sort({ updatedAt: -1 })
+      .limit(15)
+      .populate('projectId', 'name');
+    
+    const recentActivities = recentTasks.map(t => ({
+      type: 'TASK_UPDATED',
+      data: {
+        task: t.title,
+        project: t.projectId?.name || 'Unknown Project',
+        status: t.status,
+        user: 'System' // We don't store the last modifier in Task model yet, so use 'System' or similar
+      },
+      timestamp: t.updatedAt
+    }));
+
+    res.json({
+      userStats,
+      projectStats,
+      recentActivities
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

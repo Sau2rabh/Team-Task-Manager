@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import GlobalLoader from "@/components/GlobalLoader";
+import ConsoleManager from "@/components/utils/ConsoleManager";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
@@ -25,6 +26,7 @@ export default function RootLayout({
         <ThemeProvider>
           <AuthProvider>
             <GlobalLoader>
+              <ConsoleManager />
               {children}
             </GlobalLoader>
           </AuthProvider>
