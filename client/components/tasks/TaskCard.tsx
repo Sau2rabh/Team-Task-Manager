@@ -16,8 +16,8 @@ interface Task {
   status: 'Todo' | 'In Progress' | 'Completed';
   assignedTo?: { _id: string; name: string; email: string };
   dueDate?: string;
-  comments: any[];
-  activity: any[];
+  comments?: any[];
+  activity?: any[];
 }
 
 interface Props {

@@ -28,6 +28,8 @@ interface Task {
   status: 'Todo' | 'In Progress' | 'Completed';
   assignedTo?: any;
   dueDate?: string;
+  comments?: any[];
+  activity?: any[];
 }
 
 interface Props {
