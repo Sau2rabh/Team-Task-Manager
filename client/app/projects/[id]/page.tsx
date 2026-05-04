@@ -25,15 +25,8 @@ interface Project {
   members: Array<{ user: { _id: string; name: string; email: string }; role: string }>;
 }
 
-interface Task {
-  _id: string;
-  title: string;
-  description: string;
-  status: 'Todo' | 'In Progress' | 'Completed';
-  assignedTo?: Array<{ _id: string; name: string; email: string }>;
-  dueDate?: string;
-  createdAt: string;
-}
+import { Task } from '@/types/task';
+
 
 export default function ProjectDetailsPage() {
   const { id } = useParams();

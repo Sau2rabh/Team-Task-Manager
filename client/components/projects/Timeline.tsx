@@ -6,14 +6,8 @@ import { Calendar, CheckCircle2, Circle, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
-interface Task {
-  _id: string;
-  title: string;
-  description: string;
-  status: 'Todo' | 'In Progress' | 'Completed';
-  createdAt: string;
-  dueDate?: string;
-}
+import { Task } from '@/types/task';
+
 
 interface TimelineProps {
   tasks: Task[];

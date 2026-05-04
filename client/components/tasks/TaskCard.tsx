@@ -9,16 +9,8 @@ import { Confetti } from '../ui/Confetti';
 import { CustomSelect } from '../ui/CustomSelect';
 import TaskDetailModal from './TaskDetailModal';
 
-interface Task {
-  _id: string;
-  title: string;
-  description: string;
-  status: 'Todo' | 'In Progress' | 'Completed';
-  assignedTo?: Array<{ _id: string; name: string; email: string }>;
-  dueDate?: string;
-  comments?: any[];
-  activity?: any[];
-}
+import { Task } from '@/types/task';
+
 
 interface Props {
   task: Task;

@@ -7,14 +7,8 @@ import { CheckCircle2, Clock, AlertCircle, Loader2 } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
-interface Task {
-  _id: string;
-  title: string;
-  description: string;
-  status: 'Todo' | 'In Progress' | 'Completed';
-  projectId: { _id: string; name: string };
-  dueDate?: string;
-}
+import { Task } from '@/types/task';
+
 
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
@@ -90,8 +84,11 @@ export default function MyTasksPage() {
                   <div className="min-w-0">
                     <h3 className="font-bold truncate">{task.title}</h3>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Project: <span className="text-foreground font-medium">{task.projectId?.name}</span>
+                      Project: <span className="text-foreground font-medium">
+                        {typeof task.projectId === 'object' ? task.projectId.name : 'Unknown Project'}
+                      </span>
                     </p>
+
                   </div>
                 </div>
 

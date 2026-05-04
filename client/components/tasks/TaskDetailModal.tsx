@@ -22,30 +22,8 @@ import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
-interface Comment {
-  _id: string;
-  user: { _id: string; name: string; email: string };
-  text: string;
-  createdAt: string;
-}
+import { Task, Comment, ActivityItem } from '@/types/task';
 
-interface ActivityItem {
-  _id: string;
-  user: { _id: string; name: string };
-  action: string;
-  timestamp: string;
-}
-
-interface Task {
-  _id: string;
-  title: string;
-  description: string;
-  status: string;
-  dueDate?: string;
-  assignedTo: Array<{ _id: string; name: string; email: string }>;
-  comments: Comment[];
-  activity: ActivityItem[];
-}
 
 interface Props {
   taskId: string;
@@ -229,7 +207,7 @@ const TaskDetailModal: React.FC<Props> = ({ taskId, isOpen, onClose, onUpdate })
                           <p>No comments yet. Start a discussion!</p>
                         </div>
                       ) : (
-                        task?.comments.map((comment) => (
+                        task?.comments?.map((comment) => (
                           <div key={comment._id} className="flex gap-4">
                             <div className="w-8 h-8 rounded-xl bg-linear-to-br from-primary to-indigo-600 flex items-center justify-center text-[10px] font-black text-white shrink-0">
                               {comment.user.name.charAt(0)}
@@ -282,7 +260,7 @@ const TaskDetailModal: React.FC<Props> = ({ taskId, isOpen, onClose, onUpdate })
                           <p>No activity recorded yet.</p>
                         </div>
                     ) : (
-                      task?.activity.slice().reverse().map((item, idx) => (
+                      task?.activity?.slice().reverse().map((item, idx) => (
                         <div key={idx} className="flex gap-4 items-start">
                           <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-primary ring-4 ring-primary/10 shrink-0" />
                           <div>

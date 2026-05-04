@@ -21,16 +21,8 @@ import {
 import { KanbanColumn } from './KanbanColumn';
 import { TaskCard } from './TaskCard';
 
-interface Task {
-  _id: string;
-  title: string;
-  description: string;
-  status: 'Todo' | 'In Progress' | 'Completed';
-  assignedTo?: any;
-  dueDate?: string;
-  comments?: any[];
-  activity?: any[];
-}
+import { Task } from '@/types/task';
+
 
 interface Props {
   tasks: Task[];

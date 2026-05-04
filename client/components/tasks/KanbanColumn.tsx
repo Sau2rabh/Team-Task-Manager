@@ -6,16 +6,8 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { TaskCard } from './TaskCard';
 import { cn } from '@/lib/utils';
 
-interface Task {
-  _id: string;
-  title: string;
-  description: string;
-  status: 'Todo' | 'In Progress' | 'Completed';
-  assignedTo?: { _id: string; name: string; email: string };
-  dueDate?: string;
-  comments?: any[];
-  activity?: any[];
-}
+import { Task } from '@/types/task';
+
 
 interface Props {
   id: string;

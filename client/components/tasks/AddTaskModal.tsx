@@ -7,13 +7,16 @@ import api from '@/lib/api';
 import { toast } from 'sonner';
 import { useTheme } from '@/context/ThemeContext';
 
+import { Task, User } from '@/types/task';
+
 interface Props {
   projectId: string;
   isOpen: boolean;
   onClose: () => void;
-  onTaskAdded: (task: any) => void;
-  members: any[];
+  onTaskAdded: (task: Task) => void;
+  members: Array<{ user: User; role: string }>;
 }
+
 
 export const AddTaskModal: React.FC<Props> = ({ projectId, isOpen, onClose, onTaskAdded, members }) => {
   const [title, setTitle] = useState('');
