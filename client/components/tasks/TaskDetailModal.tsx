@@ -42,7 +42,7 @@ interface Task {
   description: string;
   status: string;
   dueDate?: string;
-  assignedTo?: { _id: string; name: string; email: string };
+  assignedTo: Array<{ _id: string; name: string; email: string }>;
   comments: Comment[];
   activity: ActivityItem[];
 }
@@ -146,7 +146,17 @@ const TaskDetailModal: React.FC<Props> = ({ taskId, isOpen, onClose, onUpdate })
                   </div>
                   <div>
                     <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Assigned To</p>
-                    <p className="text-sm font-bold">{task?.assignedTo?.name || 'Unassigned'}</p>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {task?.assignedTo && task.assignedTo.length > 0 ? (
+                        task.assignedTo.map(u => (
+                          <span key={u._id} className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold border border-primary/20">
+                            {u.name}
+                          </span>
+                        ))
+                      ) : (
+                        <p className="text-sm font-bold">Unassigned</p>
+                      )}
+                    </div>
                   </div>
                 </div>
 

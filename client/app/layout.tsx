@@ -21,12 +21,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} ${outfit.variable} font-sans antialiased`}>
-        {/* Force fonts to be 'used' immediately to prevent preload warnings */}
-        <div style={{ fontFamily: 'var(--font-inter)', opacity: 0, position: 'absolute', pointerEvents: 'none' }}>.</div>
-        <div style={{ fontFamily: 'var(--font-outfit)', opacity: 0, position: 'absolute', pointerEvents: 'none' }}>.</div>
-        
+    <html lang="en" className={`${inter.variable} ${outfit.variable}`} suppressHydrationWarning>
+      <body className="font-sans antialiased">
         <ConsoleManager />
         <ThemeProvider>
           <AuthProvider>

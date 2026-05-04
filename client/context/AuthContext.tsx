@@ -23,6 +23,8 @@ interface User {
   level?: number;
   status?: string;
   statusIcon?: string;
+  gender?: string;
+  dateOfBirth?: string;
 }
 
 interface AuthContextType {
@@ -43,11 +45,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const router = useRouter();
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('team_task_manager_user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
+    const fetchUser = async () => {
+      const storedUser = localStorage.getItem('team_task_manager_user');
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+        
+        try {
+          // Verify and sync with server
+          const { data } = await axios.get(`${API_URL}/users/profile`, {
+            headers: { Authorization: `Bearer ${parsedUser.token}` }
+          });
+          const updatedUser = { ...parsedUser, ...data };
+          setUser(updatedUser);
+          localStorage.setItem('team_task_manager_user', JSON.stringify(updatedUser));
+        } catch (error) {
+          console.error('Failed to sync user profile', error);
+          // If token is invalid, logout might happen via interceptors or we handle here
+        }
+      }
+      setLoading(false);
+    };
+
+    fetchUser();
   }, []);
 
   useEffect(() => {

@@ -8,6 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 import { socketService } from '@/lib/socket';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 
 interface Message {
   _id: string;
@@ -30,6 +31,8 @@ const ChatWidget = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [unreadCount, setUnreadCount] = useState(0);
+  const [typingUsers, setTypingUsers] = useState<{ [key: string]: string }>({});
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -83,9 +86,34 @@ const ChatWidget = () => {
       }
     });
 
+    socketService.on('user_typing', (data: { userId: string, name?: string, typing: boolean, isGlobal: boolean }) => {
+      if (data.isGlobal && chatMode === 'global') {
+        if (data.typing) {
+          setTypingUsers(prev => ({ ...prev, [data.userId]: data.name || 'Someone' }));
+        } else {
+          setTypingUsers(prev => {
+            const next = { ...prev };
+            delete next[data.userId];
+            return next;
+          });
+        }
+      } else if (!data.isGlobal && chatMode === 'direct' && data.userId === activeRecipient?._id) {
+        if (data.typing) {
+          setTypingUsers(prev => ({ ...prev, [data.userId]: 'Typing...' }));
+        } else {
+          setTypingUsers(prev => {
+            const next = { ...prev };
+            delete next[data.userId];
+            return next;
+          });
+        }
+      }
+    });
+
     return () => {
       socketService.off('new_message');
       socketService.off('new_private_message');
+      socketService.off('user_typing');
     };
   }, [isOpen, isMinimized, chatMode, activeRecipient]);
 
@@ -118,8 +146,55 @@ const ChatWidget = () => {
         await api.post('/chat/direct', { recipientId: activeRecipient?._id, content: newMessage });
       }
       setNewMessage('');
+      
+      // Stop typing status immediately after sending
+      socketService.emit('typing', {
+        userId: user?._id,
+        recipientId: chatMode === 'direct' ? activeRecipient?._id : null,
+        typing: false
+      });
     } catch (error) {
       console.error('Failed to send message', error);
+    }
+  };
+
+  const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewMessage(e.target.value);
+    
+    // Emit typing event
+    socketService.emit('typing', {
+      userId: user?._id,
+      name: user?.name,
+      recipientId: chatMode === 'direct' ? activeRecipient?._id : null,
+      typing: true
+    });
+
+    // Clear previous timeout
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+
+    // Set timeout to stop typing
+    typingTimeoutRef.current = setTimeout(() => {
+      socketService.emit('typing', {
+        userId: user?._id,
+        recipientId: chatMode === 'direct' ? activeRecipient?._id : null,
+        typing: false
+      });
+    }, 2000);
+  };
+
+  const handleOpenAdminChat = async () => {
+    try {
+      const { data: admins } = await api.get('/users/search?query=admin');
+      const mainAdmin = admins.find((a: any) => a.role === 'admin') || admins[0];
+      if (mainAdmin) {
+        setChatMode('direct');
+        setActiveRecipient(mainAdmin);
+        setIsMinimized(false);
+      } else {
+        toast.error('No admin available at the moment');
+      }
+    } catch (error) {
+      toast.error('Failed to connect to admin');
     }
   };
 
@@ -159,6 +234,15 @@ const ChatWidget = () => {
                 </div>
               </div>
               <div className="flex items-center gap-1">
+                {chatMode === 'global' && (
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); handleOpenAdminChat(); }}
+                    className="px-3 py-1 bg-white/20 hover:bg-white/30 rounded-full text-[10px] font-black uppercase tracking-tighter mr-2 transition-all active:scale-95 flex items-center gap-1"
+                  >
+                    <User size={12} />
+                    Support
+                  </button>
+                )}
                 {chatMode === 'direct' && (
                   <button 
                     onClick={(e) => { e.stopPropagation(); setChatMode('global'); setActiveRecipient(null); }}
@@ -225,6 +309,16 @@ const ChatWidget = () => {
                       );
                     })
                   )}
+                  {Object.keys(typingUsers).length > 0 && (
+                    <div className="flex items-center gap-2 text-[10px] text-primary font-bold italic animate-pulse px-3 py-1 bg-primary/5 rounded-full w-fit ml-2">
+                      <div className="flex gap-1">
+                        <span className="w-1 h-1 bg-primary rounded-full animate-bounce"></span>
+                        <span className="w-1 h-1 bg-primary rounded-full animate-bounce [animation-delay:0.2s]"></span>
+                        <span className="w-1 h-1 bg-primary rounded-full animate-bounce [animation-delay:0.4s]"></span>
+                      </div>
+                      {Object.values(typingUsers).join(', ')} typing...
+                    </div>
+                  )}
                 </div>
 
                 {/* Input Area */}
@@ -233,7 +327,7 @@ const ChatWidget = () => {
                     <input 
                       type="text"
                       value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
+                      onChange={handleTyping}
                       placeholder="Type a message..."
                       className="w-full bg-white/5 border border-white/10 rounded-full py-3 px-5 pr-12 text-xs focus:outline-hidden focus:ring-2 focus:ring-primary/50 transition-all"
                     />

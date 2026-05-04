@@ -6,8 +6,12 @@ let activeUsers = new Map();
 const initSocket = (server) => {
   io = socketIo(server, {
     cors: {
-      origin: process.env.FRONTEND_URL || "http://localhost:3000",
-      methods: ["GET", "POST"]
+      origin: (origin, callback) => {
+        // Echo back the requesting origin to satisfy CORS with credentials
+        callback(null, origin || true);
+      },
+      methods: ["GET", "POST"],
+      credentials: true
     }
   });
 
@@ -37,6 +41,26 @@ const initSocket = (server) => {
         activeUsers.delete(socket.id);
         io.emit('activeUsersUpdate', Array.from(activeUsers.values()));
         console.log('👋 User disconnected:', user.name);
+      }
+    });
+
+    // Typing Indicator
+    socket.on('typing', (data) => {
+      if (data.recipientId) {
+        // Direct chat typing
+        socket.to(data.recipientId).emit('user_typing', { 
+          userId: data.userId, 
+          typing: data.typing,
+          isGlobal: false 
+        });
+      } else {
+        // Global chat typing
+        socket.broadcast.emit('user_typing', { 
+          userId: data.userId, 
+          name: data.name,
+          typing: data.typing,
+          isGlobal: true 
+        });
       }
     });
 

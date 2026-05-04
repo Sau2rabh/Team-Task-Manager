@@ -274,10 +274,22 @@ export default function LandingPage() {
           ].map((f, i) => (
             <motion.div 
               key={i}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ 
+                y: {
+                  duration: 4,
+                  repeat: Infinity,
+                  delay: i * 0.5,
+                  ease: "easeInOut"
+                },
+                opacity: { delay: i * 0.1, duration: 0.6 },
+                default: { delay: i * 0.1, duration: 0.6, ease: "easeOut" }
+              }}
+              animate={{
+                y: [0, -10, 0],
+              }}
               onMouseMove={(e) => {
                 const rect = e.currentTarget.getBoundingClientRect();
                 const x = e.clientX - rect.left;
@@ -285,34 +297,34 @@ export default function LandingPage() {
                 e.currentTarget.style.setProperty("--mouse-x", `${x}px`);
                 e.currentTarget.style.setProperty("--mouse-y", `${y}px`);
               }}
-              className="group relative glass p-6 sm:p-10 rounded-[2.5rem] space-y-6 overflow-hidden border border-white/10 hover:border-white/20 transition-all duration-500 cursor-default"
+              className="group relative glass p-8 sm:p-10 rounded-[2.5rem] space-y-6 overflow-hidden border border-white/10 hover:border-primary/30 transition-all duration-500 cursor-default shadow-xl hover:shadow-primary/5"
             >
-              {/* Interactive Spotlight Effect */}
+              {/* Interactive Spotlight Effect (Desktop) / Subtle Static Glow (Mobile) */}
               <div 
-                className="pointer-events-none absolute -inset-px opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                className="pointer-events-none absolute -inset-px opacity-20 sm:opacity-0 group-hover:opacity-100 transition-opacity duration-500"
                 style={{
-                  background: `radial-gradient(600px circle at var(--mouse-x) var(--mouse-y), ${f.glow}, transparent 40%)`,
+                  background: `radial-gradient(600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), ${f.glow}, transparent 40%)`,
                 }}
               />
 
               {/* Animated Gradient Border */}
-              <div className="absolute inset-0 bg-linear-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10" />
+              <div className="absolute inset-0 bg-linear-to-br from-white/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10" />
               
               <div className={`w-16 h-16 bg-linear-to-br ${f.color} rounded-2xl flex items-center justify-center shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-transform duration-500 relative`}>
-                <div className="absolute inset-0 rounded-2xl bg-white/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute inset-0 rounded-2xl bg-white/40 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
                 <f.icon className="text-white relative z-10" size={32} />
               </div>
 
               <div className="space-y-3">
                 <h3 className="text-2xl font-black font-outfit tracking-tight group-hover:text-primary transition-colors">{f.title}</h3>
-                <p className="text-muted-foreground leading-relaxed font-medium text-lg">
+                <p className="text-muted-foreground leading-relaxed font-medium text-base sm:text-lg">
                   {f.desc}
                 </p>
               </div>
 
               {/* Bottom Decorative Line */}
               <div className="pt-4">
-                <div className="h-1 w-12 bg-linear-to-r from-primary/50 to-transparent rounded-full group-hover:w-full transition-all duration-700" />
+                <div className="h-1.5 w-16 bg-linear-to-r from-primary/50 via-primary/20 to-transparent rounded-full group-hover:w-full transition-all duration-700" />
               </div>
             </motion.div>
           ))}

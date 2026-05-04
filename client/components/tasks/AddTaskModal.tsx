@@ -18,15 +18,12 @@ interface Props {
 export const AddTaskModal: React.FC<Props> = ({ projectId, isOpen, onClose, onTaskAdded, members }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [assignedTo, setAssignedTo] = useState('');
+  const [assignedTo, setAssignedTo] = useState<string[]>([]);
   const [status, setStatus] = useState('Todo');
   const [dueDate, setDueDate] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const memberOptions = [
-    { value: '', label: 'Unassigned' },
-    ...members.map(m => ({ value: m.user._id, label: m.user.name }))
-  ];
+  const memberOptions = members.map(m => ({ value: m.user._id, label: m.user.name }));
 
   const statusOptions = [
     { value: 'Todo', label: 'Todo' },
@@ -48,7 +45,7 @@ export const AddTaskModal: React.FC<Props> = ({ projectId, isOpen, onClose, onTa
         title,
         description,
         projectId,
-        assignedTo: assignedTo || undefined,
+        assignedTo: assignedTo.length > 0 ? assignedTo : [],
         status,
         dueDate: dueDate || undefined
       });
@@ -66,7 +63,7 @@ export const AddTaskModal: React.FC<Props> = ({ projectId, isOpen, onClose, onTa
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="glass w-full max-w-lg rounded-[2.5rem] overflow-hidden border border-white/20 shadow-2xl animate-in zoom-in duration-300">
+      <div className="glass w-full max-w-lg rounded-[2.5rem] border border-white/20 shadow-2xl animate-in zoom-in duration-300 relative overflow-visible">
         <div className="flex items-center justify-between p-8 border-b border-border bg-secondary/30">
           <h3 className="text-2xl font-bold tracking-tight">Add New Task</h3>
           <button onClick={onClose} className="p-2 hover:bg-secondary rounded-full transition-colors">
@@ -74,7 +71,7 @@ export const AddTaskModal: React.FC<Props> = ({ projectId, isOpen, onClose, onTa
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-8 space-y-6">
+        <form onSubmit={handleSubmit} className="p-8 space-y-6 overflow-visible">
           <div className="space-y-2">
             <label className="block text-sm font-bold ml-1 text-muted-foreground uppercase tracking-widest">Title</label>
             <input
@@ -104,7 +101,8 @@ export const AddTaskModal: React.FC<Props> = ({ projectId, isOpen, onClose, onTa
                 value={assignedTo}
                 onChange={setAssignedTo}
                 options={memberOptions}
-                placeholder="Unassigned"
+                placeholder="Select Members"
+                multiple={true}
               />
             </div>
             <div className="space-y-2">

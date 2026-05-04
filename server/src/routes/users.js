@@ -6,6 +6,13 @@ const { protect } = require('../middleware/authMiddleware');
 const User = require('../models/User');
 const Task = require('../models/Task');
 const Project = require('../models/Project');
+const fs = require('fs');
+
+// Ensure uploads directory exists
+const uploadDir = 'uploads/';
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
 
 // Multer Config for profile photos
 const storage = multer.diskStorage({
@@ -19,7 +26,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 2 * 1024 * 1024 }, // 2MB
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
   fileFilter: (req, file, cb) => {
     const filetypes = /jpeg|jpg|png|webp/;
     const mimetype = filetypes.test(file.mimetype);
@@ -63,12 +70,25 @@ router.get('/', protect, async (req, res) => {
   }
 });
 
+// @desc    Get current user profile
+// @route   GET /api/users/profile
+// @access  Private
+router.get('/profile', protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // @desc    Update user profile
 // @route   PUT /api/users/profile
 // @access  Private
 router.put('/profile', protect, async (req, res) => {
   try {
-    const { name, bio, skills, socialLinks } = req.body;
+    const { name, bio, skills, socialLinks, gender, dateOfBirth } = req.body;
     
     const user = await User.findById(req.user._id);
     if (!user) return res.status(404).json({ message: 'User not found' });
@@ -76,7 +96,15 @@ router.put('/profile', protect, async (req, res) => {
     if (name) user.name = name;
     if (bio !== undefined) user.bio = bio;
     if (skills) user.skills = skills;
-    if (socialLinks) user.socialLinks = { ...user.socialLinks, ...socialLinks };
+    if (gender) user.gender = gender;
+    if (dateOfBirth) user.dateOfBirth = dateOfBirth;
+    if (socialLinks) {
+      user.socialLinks = {
+        github: socialLinks.github !== undefined ? socialLinks.github : user.socialLinks.github,
+        linkedin: socialLinks.linkedin !== undefined ? socialLinks.linkedin : user.socialLinks.linkedin,
+        twitter: socialLinks.twitter !== undefined ? socialLinks.twitter : user.socialLinks.twitter,
+      };
+    }
 
     await user.save();
     res.json(user);

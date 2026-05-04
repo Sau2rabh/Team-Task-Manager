@@ -25,15 +25,18 @@ exports.createTask = async (req, res) => {
       projectId: req.body.projectId
     });
 
-    // Create notification for assigned user
-    if (task.assignedTo && task.assignedTo.toString() !== req.user._id.toString()) {
-      await createNotification({
-        recipient: task.assignedTo,
-        sender: req.user._id,
-        type: 'TASK_ASSIGNED',
-        message: `New task assigned: ${task.title}`,
-        projectId: task.projectId
-      });
+    // Create notifications for all assigned users
+    if (task.assignedTo && task.assignedTo.length > 0) {
+      const notificationPromises = task.assignedTo
+        .filter(id => id.toString() !== req.user._id.toString())
+        .map(recipientId => createNotification({
+          recipient: recipientId,
+          sender: req.user._id,
+          type: 'TASK_ASSIGNED',
+          message: `New task assigned: ${task.title}`,
+          projectId: task.projectId
+        }));
+      await Promise.all(notificationPromises);
     }
 
     res.status(201).json(task);
@@ -164,11 +167,117 @@ exports.getDashboardStats = async (req, res) => {
     const completedTasks = tasks.filter(t => t.status === 'Completed').length;
     const totalTasks = tasks.length;
     
-    // Calculate a dynamic performance increase based on completion ratio
-    // In a real app, this would compare with previous period data
+    // Calculate a dynamic performance increase
     const performanceIncrease = totalTasks > 0 
       ? (completedTasks / totalTasks * 12.5).toFixed(1) 
       : "0.0";
+
+    // Calculate Trends and Chart Data (Real Calculation)
+    const now = new Date();
+    const sevenDaysAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
+    const fourteenDaysAgo = new Date(now.getTime() - (14 * 24 * 60 * 60 * 1000));
+
+    // Get tasks created in current period (0-7 days) and previous period (7-14 days)
+    const currentTasks = tasks.filter(t => new Date(t.createdAt) >= sevenDaysAgo);
+    const previousTasks = tasks.filter(t => new Date(t.createdAt) >= fourteenDaysAgo && new Date(t.createdAt) < sevenDaysAgo);
+
+    const calculateTrend = (current, previous) => {
+      if (previous === 0) return current > 0 ? `+${current * 100}%` : "+0%";
+      const change = ((current - previous) / previous) * 100;
+      return `${change >= 0 ? '+' : ''}${change.toFixed(1)}%`;
+    };
+
+    const trends = {
+      total: calculateTrend(currentTasks.length, previousTasks.length),
+      completed: calculateTrend(
+        tasks.filter(t => t.status === 'Completed' && new Date(t.updatedAt) >= sevenDaysAgo).length,
+        tasks.filter(t => t.status === 'Completed' && new Date(t.updatedAt) >= fourteenDaysAgo && new Date(t.updatedAt) < sevenDaysAgo).length
+      ),
+      inProgress: calculateTrend(
+        tasks.filter(t => t.status === 'In Progress' && new Date(t.updatedAt) >= sevenDaysAgo).length,
+        tasks.filter(t => t.status === 'In Progress' && new Date(t.updatedAt) >= fourteenDaysAgo && new Date(t.updatedAt) < sevenDaysAgo).length
+      ),
+      overdue: calculateTrend(
+        tasks.filter(t => t.dueDate && new Date(t.dueDate) < now && t.status !== 'Completed' && new Date(t.updatedAt) >= sevenDaysAgo).length,
+        tasks.filter(t => t.dueDate && new Date(t.dueDate) < sevenDaysAgo && t.status !== 'Completed' && new Date(t.updatedAt) >= fourteenDaysAgo && new Date(t.updatedAt) < sevenDaysAgo).length
+      )
+    };
+
+    // Generate REAL 7-day chart data
+    const last7Days = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date();
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      
+      const completedOnDay = tasks.filter(t => {
+        const updateDate = new Date(t.updatedAt);
+        return t.status === 'Completed' && updateDate.toDateString() === date.toDateString();
+      }).length;
+
+      const activeOnDay = tasks.filter(t => {
+        const updateDate = new Date(t.updatedAt);
+        return updateDate.toDateString() === date.toDateString();
+      }).length;
+
+      last7Days.push({
+        name: dateStr,
+        completed: completedOnDay,
+        active: activeOnDay
+      });
+    }
+
+    // Get recent team-wide activity
+    const recentActivity = await Task.find({ projectId: { $in: projectIds } })
+      .sort({ updatedAt: -1 })
+      .limit(8)
+      .populate('projectId', 'name')
+      .populate('activity.user', 'name');
+
+    const activityFeed = [];
+    recentActivity.forEach(task => {
+      if (task.activity && task.activity.length > 0) {
+        const lastAction = task.activity[task.activity.length - 1];
+        activityFeed.push({
+          user: lastAction.user?.name || 'System',
+          action: lastAction.action,
+          task: task.title,
+          project: task.projectId?.name,
+          timestamp: lastAction.timestamp
+        });
+      }
+    });
+
+    // Calculate Member Workload
+    const User = require('../models/User');
+    const users = await User.find({ _id: { $in: Array.from(new Set(tasks.flatMap(t => t.assignedTo ? [t.assignedTo.toString()] : []))) } }).select('name email');
+    
+    const memberWorkload = users.map(u => {
+      const userTasks = tasks.filter(t => 
+        t.assignedTo?.some(at => (at._id ? at._id.toString() : at.toString()) === u._id.toString())
+      );
+      const completedCount = userTasks.filter(t => t.status === 'Completed').length;
+      return {
+        _id: u._id,
+        name: u.name,
+        taskCount: userTasks.length,
+        completedCount,
+        progress: userTasks.length > 0 ? Math.round((completedCount / userTasks.length) * 100) : 0
+      };
+    }).sort((a, b) => b.taskCount - a.taskCount).slice(0, 5);
+
+    // Calculate Upcoming Deadlines (Due in next 48 hours)
+    const fortyEightHoursFromNow = new Date(now.getTime() + (48 * 60 * 60 * 1000));
+    const upcomingTasks = tasks
+      .filter(t => t.status !== 'Completed' && t.dueDate && new Date(t.dueDate) > now && new Date(t.dueDate) <= fortyEightHoursFromNow)
+      .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
+      .slice(0, 3)
+      .map(t => ({
+        _id: t._id,
+        title: t.title,
+        dueDate: t.dueDate,
+        priority: t.priority || 'Medium'
+      }));
 
     const stats = {
       totalTasks,
@@ -176,12 +285,19 @@ exports.getDashboardStats = async (req, res) => {
       inProgressTasks: tasks.filter(t => t.status === 'In Progress').length,
       todoTasks: tasks.filter(t => t.status === 'Todo').length,
       myTasks: tasks.filter(t => {
-        if (!t.assignedTo) return false;
-        const assignedId = t.assignedTo._id ? t.assignedTo._id.toString() : t.assignedTo.toString();
-        return assignedId === req.user._id.toString();
+        if (!t.assignedTo || t.assignedTo.length === 0) return false;
+        return t.assignedTo.some(at => {
+          const assignedId = at._id ? at._id.toString() : at.toString();
+          return assignedId === req.user._id.toString();
+        });
       }).length,
       overdueTasks: tasks.filter(t => t.dueDate && new Date(t.dueDate) < new Date() && t.status !== 'Completed').length,
       performanceIncrease,
+      chartData: last7Days,
+      teamActivity: activityFeed.slice(0, 6),
+      trends,
+      memberWorkload,
+      upcomingTasks,
       
       // Dynamic AI Insights
       insights: {

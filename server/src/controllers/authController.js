@@ -24,6 +24,16 @@ exports.signup = async (req, res) => {
       name: user.name,
       email: user.email,
       role: user.role,
+      profilePicture: user.profilePicture,
+      bio: user.bio,
+      skills: user.skills,
+      socialLinks: user.socialLinks,
+      gender: user.gender,
+      dateOfBirth: user.dateOfBirth,
+      xp: user.xp,
+      level: user.level,
+      status: user.status,
+      statusIcon: user.statusIcon,
       token: generateToken(user._id, user.role),
     });
   } catch (err) {
@@ -56,6 +66,16 @@ exports.login = async (req, res) => {
       name: user.name,
       email: user.email,
       role: user.role,
+      profilePicture: user.profilePicture,
+      bio: user.bio,
+      skills: user.skills,
+      socialLinks: user.socialLinks,
+      gender: user.gender,
+      dateOfBirth: user.dateOfBirth,
+      xp: user.xp,
+      level: user.level,
+      status: user.status,
+      statusIcon: user.statusIcon,
       token: generateToken(user._id, user.role),
     });
   } catch (err) {

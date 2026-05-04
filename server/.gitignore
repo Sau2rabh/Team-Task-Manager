@@ -14,3 +14,4 @@ test_*.json
 test_*.js
 *.tmp
 *.temp
+uploads/

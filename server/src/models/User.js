@@ -42,6 +42,14 @@ const userSchema = new mongoose.Schema({
     linkedin: { type: String, default: '' },
     twitter: { type: String, default: '' },
   },
+  gender: {
+    type: String,
+    enum: ['Male', 'Female', 'Transgender', 'Other', 'Prefer not to say'],
+    default: 'Prefer not to say',
+  },
+  dateOfBirth: {
+    type: Date,
+  },
   createdAt: {
     type: Date,
     default: Date.now,
@@ -61,6 +69,13 @@ const userSchema = new mongoose.Schema({
   statusIcon: {
     type: String,
     default: 'Circle',
+  },
+  lastLogin: {
+    type: Date,
+  },
+  isActive: {
+    type: Boolean,
+    default: true,
   },
 });
 

@@ -121,7 +121,7 @@ const NotificationDropdown = ({ user }: { user: any }) => {
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            className="absolute right-0 mt-4 w-80 sm:w-96 glass border border-white/10 rounded-3xl shadow-2xl z-50 overflow-hidden"
+            className="fixed inset-x-4 top-20 sm:absolute sm:top-auto sm:right-0 sm:inset-auto sm:mt-4 sm:w-96 glass border border-white/10 rounded-3xl shadow-2xl z-50 overflow-hidden"
           >
             <div className="p-4 border-b border-white/5 flex items-center justify-between bg-white/5">
               <h3 className="font-bold text-sm">Notifications</h3>

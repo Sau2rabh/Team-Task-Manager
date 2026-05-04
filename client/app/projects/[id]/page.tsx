@@ -30,7 +30,7 @@ interface Task {
   title: string;
   description: string;
   status: 'Todo' | 'In Progress' | 'Completed';
-  assignedTo?: { _id: string; name: string; email: string };
+  assignedTo?: Array<{ _id: string; name: string; email: string }>;
   dueDate?: string;
   createdAt: string;
 }

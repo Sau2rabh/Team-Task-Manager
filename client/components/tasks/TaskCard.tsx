@@ -14,7 +14,7 @@ interface Task {
   title: string;
   description: string;
   status: 'Todo' | 'In Progress' | 'Completed';
-  assignedTo?: { _id: string; name: string; email: string };
+  assignedTo?: Array<{ _id: string; name: string; email: string }>;
   dueDate?: string;
   comments?: any[];
   activity?: any[];
@@ -106,13 +106,21 @@ export const TaskCard: React.FC<Props> = ({ task, onTaskUpdate }) => {
       )}
 
       <div className="flex items-center justify-between mt-auto pt-2 border-t border-border/10">
-        <div className="flex items-center gap-2">
-          {task.assignedTo && task.assignedTo.name && (
-            <div className="flex items-center gap-1 text-[10px] text-muted-foreground font-medium">
-              <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-[8px] font-bold">
-                {task.assignedTo.name.charAt(0)}
+        <div className="flex items-center -space-x-2">
+          {task.assignedTo && task.assignedTo.length > 0 ? (
+            task.assignedTo.map((user, idx) => (
+              <div 
+                key={user._id} 
+                title={user.name}
+                className="w-6 h-6 rounded-full bg-linear-to-br from-primary to-indigo-600 border-2 border-background flex items-center justify-center text-[8px] font-black text-white shadow-sm ring-1 ring-white/10"
+                style={{ zIndex: 10 - idx }}
+              >
+                {user.name.charAt(0)}
               </div>
-              <span className="max-w-[80px] truncate">{task.assignedTo.name}</span>
+            ))
+          ) : (
+            <div className="w-6 h-6 rounded-full bg-secondary border-2 border-background flex items-center justify-center text-muted-foreground">
+              <User size={10} />
             </div>
           )}
         </div>

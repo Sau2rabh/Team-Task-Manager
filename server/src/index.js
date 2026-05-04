@@ -12,8 +12,31 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Trust proxy if behind one
+app.set('trust proxy', 1);
+
 // Middleware
-app.use(cors());
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) === -1) {
+      if (process.env.NODE_ENV === 'development') {
+        return callback(null, true);
+      }
+      var msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']
+}));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
@@ -27,13 +50,19 @@ app.use((req, res, next) => {
   next();
 });
 
-// DB Connection
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('✅ Connected to MongoDB'))
-  .catch((err) => {
+// DB Connection with retry logic
+const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI);
+    console.log('✅ Connected to MongoDB');
+  } catch (err) {
     console.error('❌ MongoDB connection error:', err);
-    console.log('⚠️  Make sure you have a valid MONGODB_URI in your .env file');
-  });
+    console.log('⚠️  Retrying in 5 seconds...');
+    setTimeout(connectDB, 5000);
+  }
+};
+
+connectDB();
 
 // Routes Placeholder
 app.get('/', (req, res) => {
@@ -61,9 +90,12 @@ app.use('/api/chat', chatRoutes);
 // Error Handling Middleware
 app.use((err, req, res, next) => {
   console.error('🔥 Server Error:', err.stack);
+  if (err.code === 'LIMIT_FILE_SIZE') {
+    return res.status(400).json({ message: 'File too large! Max 10MB allowed.' });
+  }
   res.status(err.status || 500).json({ 
-    message: 'Something went wrong!', 
-    error: err.message,
+    message: err.message || 'Something went wrong!', 
+    error: process.env.NODE_ENV === 'development' ? err.message : undefined,
     stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
   });
 });
@@ -71,9 +103,42 @@ app.use((err, req, res, next) => {
 const server = http.createServer(app);
 initSocket(server);
 
+// Handle server errors (like EADDRINUSE)
+server.on('error', (e) => {
+  if (e.code === 'EADDRINUSE') {
+    console.error(`❌ Port ${PORT} is already in use. Please kill the process or wait.`);
+    process.exit(1);
+  } else {
+    console.error('❌ Server error:', e);
+  }
+});
+
 server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
+
+// Graceful Shutdown
+const gracefulShutdown = (signal) => {
+  console.log(`\n${signal} received. Shutting down gracefully...`);
+  
+  const timeout = setTimeout(() => {
+    console.error('Could not close connections in time, forcefully shutting down');
+    process.exit(1);
+  }, 3000);
+
+  server.close(() => {
+    console.log('HTTP server closed.');
+    mongoose.connection.close(false, () => {
+      console.log('MongoDB connection closed.');
+      clearTimeout(timeout);
+      process.exit(0);
+    });
+  });
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+process.on('SIGUSR2', () => gracefulShutdown('SIGUSR2')); // Handle nodemon restart
 
 // Handle uncaught errors
 process.on('uncaughtException', (err) => {

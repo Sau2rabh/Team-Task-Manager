@@ -15,7 +15,11 @@ export default function ConsoleManager() {
       'Hydration failed because the initial UI does not match',
       'Minified React error #418',
       'Minified React error #423',
-      'preloaded using link preload but not used'
+      'preloaded using link preload but not used',
+      'was preloaded using link preload but not used',
+      'WebSocket connection to',
+      'WebSocket is closed before the connection is established',
+      'framer-motion: prop'
     ];
 
     console.warn = (...args) => {

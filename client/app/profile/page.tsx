@@ -22,6 +22,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import api from '@/lib/api';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { Calendar, UserCircle } from 'lucide-react';
+import { CustomSelect } from '@/components/ui/CustomSelect';
 
 const ProfilePage = () => {
   const { user, updateUser } = useAuth();
@@ -34,7 +36,25 @@ const ProfilePage = () => {
     github: user?.socialLinks?.github || '',
     linkedin: user?.socialLinks?.linkedin || '',
     twitter: user?.socialLinks?.twitter || '',
+    gender: user?.gender || 'Prefer not to say',
+    dateOfBirth: user?.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : '',
   });
+
+  // Sync user data when it's loaded
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        name: user.name || '',
+        bio: user.bio || '',
+        skills: user.skills || [],
+        github: user.socialLinks?.github || '',
+        linkedin: user.socialLinks?.linkedin || '',
+        twitter: user.socialLinks?.twitter || '',
+        gender: user.gender || 'Prefer not to say',
+        dateOfBirth: user.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : '',
+      });
+    }
+  }, [user]);
 
   const [newSkill, setNewSkill] = useState('');
   const [isUploading, setIsUploading] = useState(false);
@@ -102,7 +122,9 @@ const ProfilePage = () => {
           github: formData.github,
           linkedin: formData.linkedin,
           twitter: formData.twitter
-        }
+        },
+        gender: formData.gender,
+        dateOfBirth: formData.dateOfBirth
       };
 
       const { data } = await api.put('/users/profile', updatePayload);
@@ -127,6 +149,14 @@ const ProfilePage = () => {
     { label: 'Active Projects', value: liveStats?.activeProjects || '0', icon: Briefcase, color: 'text-blue-500' },
     { label: 'On-time Rate', value: liveStats?.onTimeRate || '0%', icon: Clock, color: 'text-amber-500' },
     { label: 'Points Earned', value: liveStats?.pointsEarned || '0', icon: Trophy, color: 'text-purple-500' },
+  ];
+
+  const genderOptions = [
+    { label: 'Male', value: 'Male' },
+    { label: 'Female', value: 'Female' },
+    { label: 'Transgender', value: 'Transgender' },
+    { label: 'Other', value: 'Other' },
+    { label: 'Prefer not to say', value: 'Prefer not to say' },
   ];
 
   const profileImageUrl = user?.profilePicture 
@@ -189,22 +219,24 @@ const ProfilePage = () => {
                   target="_blank" 
                   rel="noopener noreferrer" 
                   className={cn(
-                    "p-3 glass rounded-2xl transition-all flex items-center justify-center",
-                    formData.github ? "hover:text-primary hover:bg-primary/5 cursor-pointer" : "opacity-30 cursor-not-allowed"
+                    "p-4 glass rounded-3xl transition-all flex flex-col items-center gap-2 group/link",
+                    formData.github ? "hover:border-primary/50 hover:bg-primary/5 cursor-pointer" : "opacity-30 cursor-not-allowed"
                   )}
                 >
-                  <Globe size={20} />
+                  <Globe size={20} className="group-hover/link:text-primary transition-colors" />
+                  <span className="text-[10px] font-black uppercase tracking-tighter">GitHub</span>
                 </a>
                 <a 
                   href={ensureAbsoluteUrl(formData.linkedin)} 
                   target="_blank" 
                   rel="noopener noreferrer" 
                   className={cn(
-                    "p-3 glass rounded-2xl transition-all flex items-center justify-center",
-                    formData.linkedin ? "hover:text-primary hover:bg-primary/5 cursor-pointer" : "opacity-30 cursor-not-allowed"
+                    "p-4 glass rounded-3xl transition-all flex flex-col items-center gap-2 group/link",
+                    formData.linkedin ? "hover:border-blue-500/50 hover:bg-blue-500/5 cursor-pointer" : "opacity-30 cursor-not-allowed"
                   )}
                 >
-                  <Link size={20} />
+                  <Link size={20} className="group-hover/link:text-blue-500 transition-colors" />
+                  <span className="text-[10px] font-black uppercase tracking-tighter">LinkedIn</span>
                 </a>
               </div>
             </div>
@@ -243,35 +275,78 @@ const ProfilePage = () => {
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-muted-foreground ml-1">Full Name</label>
-                  <div className="relative group">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={18} />
-                    <input 
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      className="w-full bg-secondary/30 border border-border focus:border-primary/50 rounded-2xl py-3 pl-12 pr-4 outline-none transition-all focus:ring-4 ring-primary/5"
-                      placeholder="Your Name"
-                    />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-1">Full Name</label>
+                    <div className="relative group">
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={18} />
+                      <input 
+                        name="name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        className="w-full bg-secondary/20 backdrop-blur-sm border border-border/80 focus:border-primary/50 rounded-2xl py-4 pl-12 pr-4 outline-none transition-all focus:ring-4 ring-primary/5 font-medium"
+                        placeholder="Your Name"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-1">Email Address</label>
+                    <div className="relative opacity-60">
+                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+                      <input 
+                        value={user?.email}
+                        disabled
+                        className="w-full bg-secondary/10 border border-border/40 rounded-2xl py-4 pl-12 pr-4 outline-none cursor-not-allowed"
+                      />
+                    </div>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-bold text-muted-foreground ml-1">Bio</label>
+                  <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-1">About Bio</label>
                   <textarea 
                     name="bio"
                     value={formData.bio}
                     onChange={handleInputChange}
-                    className="w-full bg-secondary/30 border border-border focus:border-primary/50 rounded-2xl py-3 px-4 outline-none transition-all focus:ring-4 ring-primary/5 min-h-[120px] resize-none"
+                    className="w-full bg-secondary/20 backdrop-blur-sm border border-border/80 focus:border-primary/50 rounded-3xl py-4 px-5 outline-none transition-all focus:ring-4 ring-primary/5 min-h-[160px] resize-none text-sm leading-relaxed"
                     placeholder="Tell us about yourself..."
                   />
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <label className="text-sm font-bold text-muted-foreground ml-1">Skills</label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4 border-t border-white/5">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-1">Gender</label>
+                  <div className="relative group">
+                    <UserCircle className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors z-10" size={18} />
+                    <CustomSelect 
+                      options={genderOptions}
+                      value={formData.gender}
+                      onChange={(val) => setFormData(prev => ({ ...prev, gender: val }))}
+                      className="w-full pl-12"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-1">Date of Birth</label>
+                  <div className="relative group">
+                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" size={18} />
+                    <input 
+                      type="date"
+                      name="dateOfBirth"
+                      value={formData.dateOfBirth}
+                      onChange={handleInputChange}
+                      className="w-full bg-secondary/20 backdrop-blur-sm border border-border/80 focus:border-primary/50 rounded-2xl py-4 pl-12 pr-4 outline-none transition-all focus:ring-4 ring-primary/5 font-medium"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4 pt-4 border-t border-white/5">
+                <label className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-1">Expertise & Skills</label>
                 <div className="flex flex-wrap gap-2">
                   <AnimatePresence>
                     {formData.skills.map((skill) => (
@@ -280,10 +355,10 @@ const ProfilePage = () => {
                         initial={{ scale: 0.8, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         exit={{ scale: 0.8, opacity: 0 }}
-                        className="flex items-center gap-1 bg-primary/10 text-primary px-3 py-1.5 rounded-full text-sm font-medium border border-primary/20"
+                        className="flex items-center gap-1.5 bg-linear-to-br from-primary/10 to-indigo-500/10 text-primary px-4 py-2 rounded-2xl text-xs font-bold border border-primary/20 shadow-sm"
                       >
                         {skill}
-                        <button onClick={() => handleRemoveSkill(skill)} className="hover:text-red-500 transition-colors">
+                        <button onClick={() => handleRemoveSkill(skill)} className="hover:text-red-500 transition-colors ml-1">
                           <X size={14} />
                         </button>
                       </motion.div>
@@ -293,41 +368,43 @@ const ProfilePage = () => {
                     <input 
                       value={newSkill}
                       onChange={(e) => setNewSkill(e.target.value)}
-                      className="bg-secondary/30 border border-border rounded-full py-1.5 pl-4 pr-10 text-sm outline-none w-32 focus:w-48 transition-all focus:border-primary/50"
-                      placeholder="Add skill..."
+                      className="bg-secondary/20 backdrop-blur-sm border border-border/80 rounded-2xl py-2 pl-4 pr-10 text-xs font-bold outline-none w-36 focus:w-56 transition-all focus:border-primary/50"
+                      placeholder="Add new skill..."
                     />
-                    <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2 text-primary">
-                      <Plus size={16} />
+                    <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 text-primary hover:scale-125 transition-transform">
+                      <Plus size={18} />
                     </button>
                   </form>
                 </div>
               </div>
 
-              <div className="space-y-6">
-                <h4 className="font-bold text-muted-foreground border-b border-border pb-2">Social Links</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-6 pt-4 border-t border-white/5">
+                <h4 className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] ml-1">Social Networks</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-2">
-                    <label className="text-sm font-bold text-muted-foreground ml-1">GitHub URL</label>
+                    <label className="text-xs font-bold text-muted-foreground ml-1 flex items-center gap-2">
+                      <Globe size={14} /> GitHub Profile
+                    </label>
                     <div className="relative group">
-                      <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
                       <input 
                         name="github"
                         value={formData.github}
                         onChange={handleInputChange}
-                        className="w-full bg-secondary/30 border border-border focus:border-primary/50 rounded-2xl py-3 pl-12 pr-4 outline-none transition-all"
+                        className="w-full bg-secondary/20 backdrop-blur-sm border border-border/80 focus:border-primary/50 rounded-2xl py-4 px-5 outline-none transition-all font-medium text-sm"
                         placeholder="https://github.com/username"
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-bold text-muted-foreground ml-1">LinkedIn URL</label>
+                    <label className="text-xs font-bold text-muted-foreground ml-1 flex items-center gap-2">
+                      <Link size={14} /> LinkedIn Profile
+                    </label>
                     <div className="relative group">
-                      <Link className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
                       <input 
                         name="linkedin"
                         value={formData.linkedin}
                         onChange={handleInputChange}
-                        className="w-full bg-secondary/30 border border-border focus:border-primary/50 rounded-2xl py-3 pl-12 pr-4 outline-none transition-all"
+                        className="w-full bg-secondary/20 backdrop-blur-sm border border-border/80 focus:border-primary/50 rounded-2xl py-4 px-5 outline-none transition-all font-medium text-sm"
                         placeholder="https://linkedin.com/in/username"
                       />
                     </div>

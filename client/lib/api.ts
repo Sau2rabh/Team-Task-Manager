@@ -1,17 +1,24 @@
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5000/api';
 
 const api = axios.create({
   baseURL: API_URL,
+  withCredentials: true,
 });
 
 api.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
-    const storedUser = localStorage.getItem('team_task_manager_user');
-    if (storedUser) {
-      const { token } = JSON.parse(storedUser);
-      config.headers.Authorization = `Bearer ${token}`;
+    try {
+      const storedUser = localStorage.getItem('team_task_manager_user');
+      if (storedUser) {
+        const { token } = JSON.parse(storedUser);
+        if (token) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
+      }
+    } catch (e) {
+      console.error('Error parsing user token', e);
     }
   }
   return config;

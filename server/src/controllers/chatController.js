@@ -73,8 +73,12 @@ exports.sendDirectMessage = async (req, res) => {
 
     // Emit via socket to both sender and recipient rooms
     const io = getIo();
-    io.to(recipientId).emit('new_private_message', populatedMessage);
-    io.to(req.user._id.toString()).emit('new_private_message', populatedMessage);
+    const rooms = [recipientId, req.user._id.toString()];
+    const uniqueRooms = [...new Set(rooms)];
+    
+    uniqueRooms.forEach(room => {
+      io.to(room).emit('new_private_message', populatedMessage);
+    });
 
     res.status(201).json(populatedMessage);
   } catch (err) {
