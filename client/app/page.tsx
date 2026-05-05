@@ -53,22 +53,22 @@ export default function LandingPage() {
       content: (
         <div className="space-y-4">
           <p>Discover what makes Team Task Manager the ultimate workspace for modern teams.</p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-            <div className="p-4 rounded-2xl bg-primary/5 border border-primary/10">
-              <h4 className="font-bold text-primary mb-1">AI Task Intelligence</h4>
-              <p className="text-sm">Automated task suggestions based on project context using smart analysis.</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 mt-4">
+            <div className="p-3 md:p-4 rounded-2xl bg-primary/5 border border-primary/10">
+              <h4 className="font-bold text-primary mb-1 text-sm md:text-base">AI Task Intelligence</h4>
+              <p className="text-[11px] md:text-sm leading-tight md:leading-normal text-muted-foreground/90">Automated task suggestions based on project context using smart analysis.</p>
             </div>
-            <div className="p-4 rounded-2xl bg-purple-500/5 border border-purple-500/10">
-              <h4 className="font-bold text-purple-500 mb-1">Project RBAC</h4>
-              <p className="text-sm">Advanced role-based access control managed at the individual project level.</p>
+            <div className="p-3 md:p-4 rounded-2xl bg-purple-500/5 border border-purple-500/10">
+              <h4 className="font-bold text-purple-500 mb-1 text-sm md:text-base">Project RBAC</h4>
+              <p className="text-[11px] md:text-sm leading-tight md:leading-normal text-muted-foreground/90">Advanced role-based access control managed at the individual project level.</p>
             </div>
-            <div className="p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10">
-              <h4 className="font-bold text-blue-500 mb-1">Real-time Collaboration</h4>
-              <p className="text-sm">Instant updates and live chat powered by socket technology.</p>
+            <div className="p-3 md:p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10">
+              <h4 className="font-bold text-blue-500 mb-1 text-sm md:text-base">Real-time Collaboration</h4>
+              <p className="text-[11px] md:text-sm leading-tight md:leading-normal text-muted-foreground/90">Instant updates and live chat powered by socket technology.</p>
             </div>
-            <div className="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
-              <h4 className="font-bold text-emerald-500 mb-1">Interactive Kanban</h4>
-              <p className="text-sm">Premium drag-and-drop workflow with persistence and smooth animations.</p>
+            <div className="p-3 md:p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
+              <h4 className="font-bold text-emerald-500 mb-1 text-sm md:text-base">Interactive Kanban</h4>
+              <p className="text-[11px] md:text-sm leading-tight md:leading-normal text-muted-foreground/90">Premium drag-and-drop workflow with persistence and smooth animations.</p>
             </div>
           </div>
         </div>
@@ -97,7 +97,7 @@ export default function LandingPage() {
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="glass max-w-2xl w-full p-8 rounded-[2.5rem] relative overflow-hidden shadow-2xl border-white/20"
+              className="glass max-w-2xl w-full p-6 md:p-8 rounded-4xl md:rounded-[2.5rem] relative overflow-hidden shadow-2xl border-white/20"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="absolute top-0 right-0 p-6">
@@ -108,7 +108,7 @@ export default function LandingPage() {
                   <X size={20} />
                 </button>
               </div>
-              <h2 className="text-3xl font-black font-outfit mb-6 text-gradient inline-block">
+              <h2 className="text-xl md:text-3xl font-black font-outfit mb-4 md:mb-6 text-gradient inline-block">
                 {modalContent[activeModal].title}
               </h2>
               <div className="text-muted-foreground leading-relaxed">

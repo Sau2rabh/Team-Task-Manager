@@ -19,20 +19,29 @@ app.set('trust proxy', 1);
 const allowedOrigins = [
   'http://localhost:3000',
   'http://127.0.0.1:3000',
-  process.env.FRONTEND_URL
-].filter(Boolean);
+  process.env.FRONTEND_URL,
+].filter(Boolean).map(origin => origin.replace(/\/$/, '')); // Remove trailing slashes
 
 app.use(cors({
   origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) === -1) {
+    
+    // Normalize origin (remove trailing slash)
+    const normalizedOrigin = origin.replace(/\/$/, '');
+    
+    if (allowedOrigins.indexOf(normalizedOrigin) !== -1) {
+      return callback(null, true);
+    } else {
+      // In development, allow all origins but log a warning
       if (process.env.NODE_ENV === 'development') {
+        console.warn(`⚠️ CORS Warning: Origin ${origin} not in allowed list but allowed in development.`);
         return callback(null, true);
       }
-      var msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
+      
+      console.error(`❌ CORS Blocked: Origin ${origin} is not allowed by CORS policy.`);
+      return callback(new Error('Not allowed by CORS'), false);
     }
-    return callback(null, true);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS']

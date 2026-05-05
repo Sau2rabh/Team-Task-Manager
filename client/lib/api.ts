@@ -31,6 +31,13 @@ import { toast } from 'sonner';
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    const originalRequest = error.config;
+    const url = originalRequest?.url;
+    const baseURL = originalRequest?.baseURL;
+    const fullUrl = baseURL ? `${baseURL}${url}` : url;
+
+    console.error(`🌐 API Error [${error.response?.status || 'Network Error'}]: ${fullUrl}`);
+    
     if (error.response?.status === 401 && typeof window !== 'undefined') {
       localStorage.removeItem('team_task_manager_user');
       window.location.href = '/login';
